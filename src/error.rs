@@ -6,8 +6,15 @@ pub enum ContractError {
     #[error("{0}")]
     Std(#[from] StdError),
 
-    // Burada sizin belirleyeceginiz hata cesitleri olacak.
-    // Ornegin, asagidaki custom bir unauthorized hatasi yaratiyor.
     #[error("Unauthorized")]
     Unauthorized {},
+
+    #[error("Incorrect funds")]
+    IncorrectFunds {},
+
+    #[error("Divide by zero error")]
+    DivideByZeroError {},
+
+    #[error("Invalid subtraction")]
+    SubtractionError {},
 }

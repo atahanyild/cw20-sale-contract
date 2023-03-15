@@ -1,17 +1,36 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
+use cosmwasm_std::{Addr, Uint128, Binary, Coin};
+use cw20::{Cw20ReceiveMsg};
 
 #[cw_serde]
 pub struct InstantiateMsg {
     // Buradaki mesajiniz ile instantiate edilecek kontrat.
+    pub price:Uint128,
+    pub denom:String,
+    pub cw20address:Addr,
+    
 }
-
 #[cw_serde]
-pub enum ExecuteMsg {
-    // Burada blockchain e yazmak icin kullanacaginiz mesajlar olacak.
+pub enum ExecuteMsg{
+    Buy {
+        price:Uint128,
+        denom:String,
+    },
+    Receive(Cw20ReceiveMsg),
+    WithdrawAll {},
 }
-
 #[cw_serde]
 #[derive(QueryResponses)]
 pub enum QueryMsg {
-    // Burada blockchainden data almak ciin kullanacaginiz fonksiyonlar olacak.
+    // GetCount returns the current count as a json-encoded number
+    #[returns(InfoResponse)]
+    GetInfo {},
+}
+
+#[cw_serde]
+pub struct InfoResponse {
+    pub owner: Addr,
+    pub cw20address: Addr,
+    pub price: Coin,
+    pub balance: Uint128,
 }

@@ -1,6 +1,6 @@
-C:\Users\arday\OneDrive\Masaüstü\coding\teaching\template\target\debug\deps\schema.exe: src\bin\schema.rs
+D:\web3\cosmwasm workspace\ati token\target\debug\deps\schema.exe: src\bin\schema.rs
 
-C:\Users\arday\OneDrive\Masaüstü\coding\teaching\template\target\debug\deps\schema.d: src\bin\schema.rs
+D:\web3\cosmwasm workspace\ati token\target\debug\deps\schema.d: src\bin\schema.rs
 
 src\bin\schema.rs:
 
