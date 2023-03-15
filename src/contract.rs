@@ -57,6 +57,12 @@ pub fn execute(
         ExecuteMsg::Buy { price, denom } => execute::execute_buy(deps, info, price, denom),
         ExecuteMsg::Receive(msg) => execute::execute_receive(deps, msg),
         ExecuteMsg::WithdrawAll {} => execute::execute_withdraw_all(deps, info.sender),
+        ExecuteMsg::SetPrice { denom, price }=> execute::execute_set_price(deps,
+            info.sender,
+            Coin {
+                denom,
+                amount: price,
+            },),
     }
 }
 
@@ -176,6 +182,18 @@ pub mod execute {
             .add_attribute("action", "withdraw_all")
             .add_attribute("amount", state.balance)
             .add_submessages(vec![SubMsg::new(cw20_transfer_cosmos_msg)]))
+    }
+
+    pub fn execute_set_price(deps: DepsMut, sender: Addr, price: Coin) -> Result<Response, ContractError> {
+        if STATE.load(deps.storage)?.owner != sender {
+            return Err(ContractError::Unauthorized {});
+        }
+        STATE.update(deps.storage, |mut state| -> Result<_, ContractError> {
+            state.price = price;
+            Ok(state)
+        })?;
+    
+        Ok(Response::default())
     }
 }
 

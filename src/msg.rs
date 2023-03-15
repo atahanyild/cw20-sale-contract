@@ -18,6 +18,7 @@ pub enum ExecuteMsg{
     },
     Receive(Cw20ReceiveMsg),
     WithdrawAll {},
+    SetPrice { denom: String, price: Uint128 },
 }
 #[cw_serde]
 #[derive(QueryResponses)]
