@@ -1,0 +1,3 @@
+cargo:rerun-if-changed=build/main.rs
+cargo:rustc-env=TYPENUM_BUILD_CONSTS=D:\web3\cosmwasm workspace\ati token\target\wasm32-unknown-unknown\release\build\typenum-962ce96130fa3903\out\consts.rs
+cargo:rustc-env=TYPENUM_BUILD_OP=D:\web3\cosmwasm workspace\ati token\target\wasm32-unknown-unknown\release\build\typenum-962ce96130fa3903\out\op.rs

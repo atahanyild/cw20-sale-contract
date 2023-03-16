@@ -12,10 +12,7 @@ pub struct InstantiateMsg {
 }
 #[cw_serde]
 pub enum ExecuteMsg{
-    Buy {
-        price:Uint128,
-        denom:String,
-    },
+    Buy {  },
     Receive(Cw20ReceiveMsg),
     WithdrawAll {},
     SetPrice { denom: String, price: Uint128 },

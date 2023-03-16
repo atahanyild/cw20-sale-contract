@@ -1,16 +1,16 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    Addr, BankMsg, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdResult, SubMsg,
+    Addr, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdResult, SubMsg,
     Uint128, WasmMsg, to_binary,
 };
 use cw2::set_contract_version;
 
 use crate::error::ContractError;
-use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, InfoResponse};
+use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
 use crate::state::{State, STATE};
 
-use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg};
+use cw20::{Cw20ReceiveMsg};
 
 // Burada versiyonlarimizi yaratiyor ki ileride migrate edersek kontrati bu bilgileri kullanabilelim
 const CONTRACT_NAME: &str = "crates.io:template";
@@ -48,13 +48,13 @@ pub fn instantiate(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn execute(
     deps: DepsMut,
-    env: Env,
+    _env: Env,
     info: MessageInfo,
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     // Burada match icinde Execute mesajlari ve onlarin dogru fnksiyonlara yonlendirilmeleri olacak.
     match msg {
-        ExecuteMsg::Buy { price, denom } => execute::execute_buy(deps, info, price, denom),
+        ExecuteMsg::Buy {} => execute::execute_buy(deps, info),
         ExecuteMsg::Receive(msg) => execute::execute_receive(deps, msg),
         ExecuteMsg::WithdrawAll {} => execute::execute_withdraw_all(deps, info.sender),
         ExecuteMsg::SetPrice { denom, price }=> execute::execute_set_price(deps,
@@ -84,8 +84,6 @@ pub mod execute {
     pub fn execute_buy(
         deps: DepsMut,
         info: MessageInfo,
-        price: Uint128,
-        denom: String,
     ) -> Result<Response, ContractError> {
         let state = STATE.load(deps.storage).unwrap();
         //checking if our denom equals to denom which client wants to buy
@@ -222,11 +220,13 @@ pub mod query {
 
 #[cfg(test)]
 mod tests {
+    use crate::msg::InfoResponse;
+
     use super::*;
     use cosmwasm_std::testing::{
         mock_dependencies, mock_dependencies_with_balance, mock_env, mock_info,
     };
-    use cosmwasm_std::{attr, coins, to_binary, StdError, Uint128, from_binary};
+    use cosmwasm_std::{attr, coins, to_binary, Uint128, from_binary};
 
     #[test]
     fn init_test() {
@@ -258,7 +258,7 @@ mod tests {
             denom: denom.clone(),
         };
         let info = mock_info("creator", &coins(1000, "earth"));
-        instantiate(deps.as_mut(), mock_env(), info.clone(), ins_msg);
+        let _ins_res=instantiate(deps.as_mut(), mock_env(), info.clone(), ins_msg);
 
         let info = mock_info("creator", &coins(2, "token"));
         let msg = ExecuteMsg::Receive(cw20::Cw20ReceiveMsg {
@@ -270,18 +270,12 @@ mod tests {
 
         //valid transfer
         let info = mock_info("buyer", &coins(21, "token"));
-        let msg = ExecuteMsg::Buy {
-            price: price,
-            denom: denom.clone(),
-        };
+        let msg = ExecuteMsg::Buy {  };
         let res = execute(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
         assert_eq!(res.messages.len(), 2);
 
         //overpay
-        let msg = ExecuteMsg::Buy {
-            denom: denom.clone(),
-            price,
-        };
+        let msg = ExecuteMsg::Buy { };
         let info = mock_info("buyer", &coins(25, "token"));
         let _res = execute(deps.as_mut(), mock_env(), info, msg).unwrap();
         assert_eq!(_res.attributes[1], &attr("amount", Uint128::from(3u128)));
