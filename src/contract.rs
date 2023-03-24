@@ -1,8 +1,8 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    Addr, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdResult, SubMsg,
-    Uint128, WasmMsg, to_binary,
+    to_binary, Addr, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdResult, SubMsg,
+    Uint128, WasmMsg,
 };
 use cw2::set_contract_version;
 
@@ -10,7 +10,7 @@ use crate::error::ContractError;
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
 use crate::state::{State, STATE};
 
-use cw20::{Cw20ReceiveMsg};
+use cw20::Cw20ReceiveMsg;
 
 // Burada versiyonlarimizi yaratiyor ki ileride migrate edersek kontrati bu bilgileri kullanabilelim
 const CONTRACT_NAME: &str = "crates.io:template";
@@ -31,7 +31,7 @@ pub fn instantiate(
             denom: msg.denom,
         },
         balance: Uint128::zero(),
-        cw20address: msg.cw20address,
+        cw20address: Addr::unchecked(msg.cw20address),
     };
     // Kontrat versiyonumuzu kaydediyoruz.
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
@@ -57,12 +57,14 @@ pub fn execute(
         ExecuteMsg::Buy {} => execute::execute_buy(deps, info),
         ExecuteMsg::Receive(msg) => execute::execute_receive(deps, msg),
         ExecuteMsg::WithdrawAll {} => execute::execute_withdraw_all(deps, info.sender),
-        ExecuteMsg::SetPrice { denom, price }=> execute::execute_set_price(deps,
+        ExecuteMsg::SetPrice { denom, price } => execute::execute_set_price(
+            deps,
             info.sender,
             Coin {
                 denom,
                 amount: price,
-            },),
+            },
+        ),
     }
 }
 
@@ -81,10 +83,7 @@ pub mod execute {
         Ok(Response::default())
     }
 
-    pub fn execute_buy(
-        deps: DepsMut,
-        info: MessageInfo,
-    ) -> Result<Response, ContractError> {
+    pub fn execute_buy(deps: DepsMut, info: MessageInfo) -> Result<Response, ContractError> {
         let state = STATE.load(deps.storage).unwrap();
         //checking if our denom equals to denom which client wants to buy
         //see later
@@ -151,7 +150,6 @@ pub mod execute {
             ]))
     }
 
-
     pub fn execute_withdraw_all(deps: DepsMut, sender: Addr) -> Result<Response, ContractError> {
         let state = STATE.load(deps.storage).unwrap();
 
@@ -182,7 +180,11 @@ pub mod execute {
             .add_submessages(vec![SubMsg::new(cw20_transfer_cosmos_msg)]))
     }
 
-    pub fn execute_set_price(deps: DepsMut, sender: Addr, price: Coin) -> Result<Response, ContractError> {
+    pub fn execute_set_price(
+        deps: DepsMut,
+        sender: Addr,
+        price: Coin,
+    ) -> Result<Response, ContractError> {
         if STATE.load(deps.storage)?.owner != sender {
             return Err(ContractError::Unauthorized {});
         }
@@ -190,7 +192,7 @@ pub mod execute {
             state.price = price;
             Ok(state)
         })?;
-    
+
         Ok(Response::default())
     }
 }
@@ -226,7 +228,7 @@ mod tests {
     use cosmwasm_std::testing::{
         mock_dependencies, mock_dependencies_with_balance, mock_env, mock_info,
     };
-    use cosmwasm_std::{attr, coins, to_binary, Uint128, from_binary};
+    use cosmwasm_std::{attr, coins, from_binary, to_binary, Uint128};
 
     #[test]
     fn init_test() {
@@ -235,7 +237,7 @@ mod tests {
         let msg = InstantiateMsg {
             price: Uint128::from(7u128),
             denom: "token".to_string(),
-            cw20address: Addr::unchecked("cw20addr"),
+            cw20address: "cw20addr".to_string(),
         };
 
         let info = mock_info("creator", &coins(2, "token"));
@@ -253,12 +255,12 @@ mod tests {
         let price = Uint128::from(7u128);
         let denom = "token".to_string();
         let ins_msg = InstantiateMsg {
-            cw20address: Addr::unchecked("cw20addr"),
+            cw20address: "cw20addr".to_string(),
             price: price,
             denom: denom.clone(),
         };
         let info = mock_info("creator", &coins(1000, "earth"));
-        let _ins_res=instantiate(deps.as_mut(), mock_env(), info.clone(), ins_msg);
+        let _ins_res = instantiate(deps.as_mut(), mock_env(), info.clone(), ins_msg);
 
         let info = mock_info("creator", &coins(2, "token"));
         let msg = ExecuteMsg::Receive(cw20::Cw20ReceiveMsg {
@@ -270,12 +272,12 @@ mod tests {
 
         //valid transfer
         let info = mock_info("buyer", &coins(21, "token"));
-        let msg = ExecuteMsg::Buy {  };
+        let msg = ExecuteMsg::Buy {};
         let res = execute(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
         assert_eq!(res.messages.len(), 2);
 
         //overpay
-        let msg = ExecuteMsg::Buy { };
+        let msg = ExecuteMsg::Buy {};
         let info = mock_info("buyer", &coins(25, "token"));
         let _res = execute(deps.as_mut(), mock_env(), info, msg).unwrap();
         assert_eq!(_res.attributes[1], &attr("amount", Uint128::from(3u128)));
@@ -286,7 +288,8 @@ mod tests {
         let mut deps = mock_dependencies_with_balance(&coins(2, "token"));
 
         let msg = InstantiateMsg {
-            cw20address: Addr::unchecked("asdf"),
+            cw20address: "cw20addr".to_string(),
+
             price: Uint128::from(7u128),
             denom: "token".to_string(),
         };
@@ -321,7 +324,7 @@ mod tests {
         let mut deps = mock_dependencies_with_balance(&coins(2, "token"));
 
         let msg = InstantiateMsg {
-            cw20address: Addr::unchecked("asdf"),
+            cw20address: "cw20addr".to_string(),
             price: Uint128::from(7u128),
             denom: "token".to_string(),
         };
@@ -334,5 +337,4 @@ mod tests {
         let _res = execute(deps.as_mut(), mock_env(), info, msg);
         assert!(_res.is_err());
     }
-
 }

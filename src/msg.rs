@@ -7,7 +7,7 @@ pub struct InstantiateMsg {
     // Buradaki mesajiniz ile instantiate edilecek kontrat.
     pub price:Uint128,
     pub denom:String,
-    pub cw20address:Addr,
+    pub cw20address:String,
     
 }
 #[cw_serde]
