@@ -1,3 +1,2 @@
-﻿# cw-empty-template
-This is an default empty cosmwasm smart contract template that can be used for quick start.
-(Bu bos cosmwasm smart contract template i. Hizlica kod yazmaya baslamak icin kullanilabilir)
+﻿# cw20-sale-contract
+CosmWasm smart contract that enables swap native token to CW20 token. Most up to date version.
